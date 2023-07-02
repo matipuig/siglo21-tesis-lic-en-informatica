@@ -1,0 +1,222 @@
+openapi: 3.0.0
+info:
+  title: Service
+  version: ..
+  description: A description for the sample API done with [Swagger](https://swagger.io).
+  termsOfService: https://opensource.org/licenses/MIT
+  contact:
+    name: Not specified.
+  license:
+    name: License
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: '/test_container/'
+    description: Not specified.
+    variables:
+      someVariable:
+        default: defaultValue
+        description: Some variable here...
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+paths:
+  '${API.EXTRACTOR.FROM_URL}':
+    get:
+      tags:
+        - Extractor
+      operationId: fromUrl
+      summary: Get all the samples.
+      description: Returns an array with all the samples.
+      parameters:
+        - in: query
+          name: url
+          description: URL where the file is located.
+          example: 'https://some-page.com/document.pdf'
+          required: true
+      responses:
+        '200':
+          description: The request succeeded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseSuccess'
+        '400':
+          $ref: '#/components/responses/Generic400'
+        '401':
+          $ref: '#/components/responses/Generic401'
+        '403':
+          $ref: '#/components/responses/Generic403'
+        '404':
+          $ref: '#/components/responses/Generic404'
+        '429':
+          $ref: '#/components/responses/Generic429'
+        '500':
+          $ref: '#/components/responses/Generic500'
+  '${API.EXTRACTOR.FROM_BASE64}':
+    post:
+      tags:
+        - Extractor
+      operationId: fromBase64
+      summary: Gets the content from a file in base 64.
+      description: Gets the content from a file in base 64.
+      requestBody:
+        description: The content that the system must convert to file.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                base64:
+                  type: string
+                  example: xxxxxxxxxxxxxxxxxxx==
+              required:
+                - base64
+      responses:
+        '200':
+          description: The request succeeded.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ResponseSuccess'
+        '400':
+          $ref: '#/components/responses/Generic400'
+        '401':
+          $ref: '#/components/responses/Generic401'
+        '403':
+          $ref: '#/components/responses/Generic403'
+        '404':
+          $ref: '#/components/responses/Generic404'
+        '429':
+          $ref: '#/components/responses/Generic429'
+        '500':
+          $ref: '#/components/responses/Generic500'
+components:
+  responses:
+    Generic400:
+      description: Invalid arguments sent to this method.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.API_INVALID_PARAMS}
+                    enum:
+                      [
+                        'Holi',
+                        '${ERROR_CODES_CODES.API_INVALID_PARAMS}',
+                        '${ERROR_CODES_CODES.INVALID_PARAMS}',
+                      ]
+    Generic401:
+      description: The user is not authorized.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.NOT_AUTHORIZED}
+                    enum: ['${ERROR_CODES.NOT_AUTHORIZED}']
+                required:
+                  - errorCode
+    Generic403:
+      description: Method not authorized for this user.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.NOT_AUTHORIZED}
+                    enum: ['${ERROR_CODES.NOT_AUTHORIZED}']
+    Generic404:
+      description: The method is not found.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.METHOD_NOT_FOUND}
+                    enum: ['${ERROR_CODES.METHOD_NOT_FOUND}', '${ERROR_CODES.API_METHOD_NOT_FOUND}']
+    Generic429:
+      description: The client is sending requests too often.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.API_REQUESTS_TOO_OFTEN}
+                    enum: ['${ERROR_CODES.API_REQUESTS_TOO_OFTEN}']
+    Generic500:
+      description: The server had an unexpected error.
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/GenericError'
+              - type: object
+                properties:
+                  errorCode:
+                    example: ${ERROR_CODES.NOT_DEFINED}
+                    enum: ['${ERROR_CODES.NOT_DEFINED}']
+  schemas:
+    ResponseSuccess:
+      properties:
+        success:
+          type: boolean
+          description: The API succedeed.
+          enum: [true]
+          example: true
+        payload:
+          type: object
+          description: The text content.
+          properties:
+            textContent:
+              type: string
+              example: 'Some text here that was inside the document.'
+          required:
+            - textContent
+      required:
+        - success
+        - payload
+    GenericError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: The API failed.
+          enum: [false]
+          example: false
+        errorCode:
+          description: Some description code.
+          example: ERROR_CODES_CODE
+        error:
+          example: Some useful description about the error.
+          description: Message explaining what happened.
+      required:
+        - success
+        - error
+        - errorCode
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+tags:
+security:
+  - ApiKeyAuth: []

@@ -1,0 +1,29 @@
+stages:
+  - build_and_push
+  - deploy
+
+before_script:
+  - apk add --update curl && rm -rf /var/cache/apk/*
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+
+cache:
+  paths:
+    - node_modules/
+
+build_and_push_latest_image:
+  stage: build_and_push
+  only:
+    - master
+  script:
+    - docker pull "$CI_REGISTRY_IMAGE:latest" || true
+    - docker build --pull --cache-from "$CI_REGISTRY_IMAGE:latest" -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+
+deploy_tag:
+  stage: deploy
+  only:
+    - tags
+  script:
+    - docker pull "$CI_REGISTRY_IMAGE:latest"
+    - docker tag "$CI_REGISTRY_IMAGE:latest" "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME"
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME"
