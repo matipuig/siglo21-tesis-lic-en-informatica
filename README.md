@@ -1,4 +1,3 @@
-**WIP: El presente es un trabajo en curso para la cuarta entrega de la materia Seminario de Tesis.**
 
 # Siglo 21 - Tesis de Licenciatura en Informática - Matías Puig
 
