@@ -1,0 +1,94 @@
+// CONTAINERS
+// Contains containers utils to use across all the SASS files.
+
+@mixin pseudo($display: block, $pos: absolute, $content: '') {
+  content: $content;
+  display: $display;
+  position: $pos;
+}
+
+@mixin triangle($color, $direction, $size: 6px, $position: absolute, $round: false) {
+  @include pseudo($pos: $position);
+  height: 0;
+  width: 0;
+  @if $round {
+    border-radius: 3px;
+  }
+  @if $direction == down {
+    border-left: $size solid transparent;
+    border-right: $size solid transparent;
+    border-top: $size solid $color;
+    margin-top: 0 - round($size / 2.5);
+  } @else if $direction == up {
+    border-bottom: $size solid $color;
+    border-left: $size solid transparent;
+    border-right: $size solid transparent;
+
+    margin-bottom: 0 - round($size / 2.5);
+  } @else if $direction == right {
+    border-bottom: $size solid transparent;
+    border-left: $size solid $color;
+    border-top: $size solid transparent;
+    margin-right: -$size;
+  } @else if $direction == left {
+    border-bottom: $size solid transparent;
+    border-right: $size solid $color;
+    border-top: $size solid transparent;
+    margin-left: -$size;
+  }
+}
+
+@mixin hexagon($size, $color, $border: 0) {
+  background-color: $color;
+  border-left: $border;
+  border-right: $border;
+  height: ($size * 0.577);
+  margin: ($size * 0.288) 0;
+  position: relative;
+  width: $size;
+
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    @if $border == 0 {
+      border-left: ($size/2) solid transparent;
+      border-right: ($size/2) solid transparent;
+      left: 0;
+      width: 0;
+    } @else {
+      background-color: inherit;
+      height: ($size * 0.707);
+      left: ($size * 0.129);
+      -ms-transform: scaleY(0.5774) rotate(-45deg);
+      -webkit-transform: scaleY(0.5774) rotate(-45deg);
+      transform: scaleY(0.5774) rotate(-45deg);
+      width: ($size * 0.707);
+      z-index: 1;
+    }
+  }
+
+  &:before {
+    @if $border == 0 {
+      border-bottom: ($size * 0.288) solid $color;
+      bottom: 100%;
+    } @else {
+      border-right: $border;
+      border-top: $border;
+
+      top: -($size * 0.353);
+    }
+  }
+
+  &:after {
+    @if $border == 0 {
+      border-top: ($size * 0.288) solid $color;
+      top: 100%;
+      width: 0;
+    } @else {
+      border-bottom: $border;
+      border-left: $border;
+      bottom: -($size * 0.353);
+    }
+  }
+}

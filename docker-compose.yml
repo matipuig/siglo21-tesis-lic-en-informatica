@@ -1,0 +1,120 @@
+version: "3"
+
+volumes:
+  mysql_data:
+  ocr_persisted:
+  searcher_persisted:
+  loader_persisted:
+
+services:
+  #
+  # DATABASES
+  #
+  mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: application
+      MYSQL_USER: matias
+      MYSQL_PASSWORD: 12345
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  #
+  # SERVICES
+  # 
+  extractor:
+    build:
+      context: ./extractor
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8080
+
+  ocr:
+    build:
+      context: ./ocr
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      SQL_HOST: mysql
+      SQL_USERNAME: matias
+      SQL_PASSWORD: 12345
+      SQL_DATABASE: application
+      LOADER_URL: http://loader:8080/text
+    volumes:
+      - ocr_persisted:/home/node/app/persisted
+
+  searcher:
+    build:
+      context: ./searcher
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      SQL_HOST: mysql
+      SQL_USERNAME: matias
+      SQL_PASSWORD: 12345
+      SQL_DATABASE: application
+    volumes:
+      - searcher_persisted:/home/node/app/persisted
+
+  loader:
+    build:
+      context: ./loader
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      SQL_HOST: mysql
+      SQL_USERNAME: matias
+      SQL_PASSWORD: 12345
+      SQL_DATABASE: application
+      SERVICE_EXTRACTOR_URL: http://extractor:8080
+      SERVICE_OCR_URL: http://ocr:8080
+    volumes:
+      - loader_persisted:/home/node/app/persisted
+
+  integrator:
+    build:
+      context: ./integrador
+      dockerfile: Dockerfile
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      FILES_DIR_PATH: /archivos
+      SOURCE_NAME: resoluciones
+      SERVICE_LOADER_URL: http://loader:8080
+    volumes:
+      - ./archivos:/archivos:rw
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    environment:
+      SESSION_SECRET: 12345
+      SQL_HOST: mysql
+      SQL_USERNAME: matias
+      SQL_PASSWORD: 12345
+      SQL_DATABASE: application
+    ports:
+      - 8005:8080
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NEXT_BASE_URL: 
+    ports:
+      - 80:3000
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080

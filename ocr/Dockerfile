@@ -42,7 +42,6 @@ RUN npm run compile
 USER root
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
 COPY ./tesseract /usr/share/tesseract-ocr/
-USER node
 
 VOLUME /home/node/app/persisted
 

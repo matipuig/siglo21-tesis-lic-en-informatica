@@ -1,0 +1,9 @@
+@use 'scss/variables/colors' as colors;
+@use 'scss/utils/containers' as containers;
+@use 'scss/variables/fontSizes' as fontSizes;
+@use 'scss/variables/mediaQuerySizes' as mediaQuerySizes;
+
+.resultsCount,
+.itemsPerPageContainer {
+  margin: 15px 5px;
+}

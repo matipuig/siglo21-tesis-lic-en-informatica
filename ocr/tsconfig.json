@@ -5,7 +5,6 @@
     "target": "es5",
     "module": "commonjs",
     "outDir": "./build",
-    "jsx": "react",
     "declaration": true,
     "lib": ["es6", "dom", "es2017"],
     "noImplicitAny": true,
@@ -23,7 +22,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "tests", "dist", "build", "docs"],
+  "exclude": ["node_modules", "build"],
   "watchOptions": {
     "watchFile": "useFsEvents",
     "watchDirectory": "useFsEvents",

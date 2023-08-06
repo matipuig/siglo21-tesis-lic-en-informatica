@@ -1,0 +1,104 @@
+// CONTAINERS
+// Contains containers utils to use across all the SASS files.
+
+@use 'scss/variables/mediaQuerySizes' as mediaQuerySizes;
+
+@mixin center-horizontal() {
+  // left: 50%;
+  // position: absolute;
+  // transform: translate(-50%, 0);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@mixin center-vertical() {
+  position: absolute;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+@mixin center {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin set-width($width) {
+  max-width: $width;
+  min-width: $width;
+  width: $width;
+}
+
+@mixin set-height($height) {
+  height: $height;
+  max-height: $height;
+  min-height: $height;
+}
+
+@mixin set-size($size) {
+  @include set-width($size);
+  @include set-height($size);
+}
+
+@mixin full-container-width {
+  @include set-width(100%);
+}
+
+@mixin full-container-height {
+  @include set-height(100%);
+}
+
+@mixin full-container-size {
+  left: 0;
+  top: 0;
+  @include full-container-width;
+  @include full-container-height;
+}
+
+@mixin full-viewport-width {
+  overflow-x: hidden;
+  @include set-width(100vw);
+}
+
+@mixin full-viewport-height {
+  overflow-y: hidden;
+  @include set-height(100vh);
+}
+
+@mixin full-viewport-size {
+  left: 0;
+  top: 0;
+  @include full-viewport-width;
+  @include full-viewport-height;
+}
+
+@mixin responsive-container {
+  margin: 0 15px;
+  @include set-width(calc(100% - 30px));
+
+  @media #{mediaQuerySizes.$small} {
+    margin: 0 auto;
+    @include set-width(540px);
+  }
+
+  @media #{mediaQuerySizes.$medium} {
+    margin: 0 auto;
+    @include set-width(720px);
+  }
+
+  @media #{mediaQuerySizes.$large} {
+    margin: 0 auto;
+    @include set-width(960px);
+  }
+
+  @media #{mediaQuerySizes.$x-large} {
+    margin: 0 auto;
+    @include set-width(1140px);
+  }
+
+  @media #{mediaQuerySizes.$xx-large} {
+    margin: 0 auto;
+    @include set-width(1320px);
+  }
+}

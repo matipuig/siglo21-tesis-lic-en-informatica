@@ -1,0 +1,38 @@
+@use 'scss/variables/colors' as colors;
+@use 'scss/utils/containers' as containers;
+@use 'scss/variables/fontSizes' as fontSizes;
+@use 'scss/variables/mediaQuerySizes' as mediaQuerySizes;
+
+.logo {
+  width: 100%;
+}
+
+.input {
+  margin: 15px;
+}
+
+.mainContainer {
+  @include containers.full-container-width;
+  @include containers.center-horizontal;
+}
+
+.formBox {
+  margin-bottom: 20px;
+  @include containers.full-container-width;
+
+  .formLabel {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+
+  .formElement {
+    margin-bottom: 10px;
+  }
+}
+
+.buttonBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  @include containers.full-container-width;
+}

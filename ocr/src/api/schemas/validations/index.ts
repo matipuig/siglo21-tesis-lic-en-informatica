@@ -1,15 +1,7 @@
-/**
- *  @packageDocumentation
- *  @module API/Validator
- *  Contain all the possible validation for schemas.
- */
-
-import FILES from './files';
-import TEXTRACTOR from './textractor';
+import OCR from './OCR';
 
 const validationList = {
-  HASHES: FILES.HASHES,
-  FROM_BASE_64: TEXTRACTOR.FROM_BASE_64,
+  OCR: OCR.OCR,
 };
 
 export default validationList;

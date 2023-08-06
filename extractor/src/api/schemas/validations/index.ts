@@ -1,8 +1,3 @@
-/**
- *  @packageDocumentation
- *  @module API/Validator
- *  Contain all the possible validation for schemas.
- */
 import extractor from './extractor';
 
 const validationList = {

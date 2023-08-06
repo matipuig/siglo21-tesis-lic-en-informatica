@@ -1,0 +1,82 @@
+@use 'scss/variables/colors' as colors;
+@use 'scss/utils/containers' as containers;
+@use 'scss/variables/fontSizes' as fontSizes;
+@use 'scss/variables/mediaQuerySizes' as mediaQuerySizes;
+
+.container {
+  display: flex;
+  @media #{mediaQuerySizes.$mobile} {
+    flex-direction: column;
+  }
+  flex-direction: row;
+}
+
+.mobileLogo {
+  @media #{mediaQuerySizes.$mobile} {
+    display: block;
+  }
+  display: none;
+  margin: 2px auto;
+  text-align: center;
+  @include containers.full-container-width;
+
+  img {
+    margin: 0 auto;
+    width: 100%;
+    min-width: 330px;
+    max-width: 500px;
+    padding: 20px 5px 10px;
+  }
+}
+
+.logoLabel {
+  color: colors.$primary;
+  font-size: 1.5em;
+  margin: 3px;
+  text-align: center;
+}
+
+.formContainer {
+  display: block;
+  @media #{mediaQuerySizes.$mobile} {
+    width: 100%;
+  }
+  width: 25%;
+  min-width: 320px;
+  @include containers.full-container-height;
+}
+
+.optionsContainer {
+  margin: 5px auto;
+  overflow: visible !important;
+}
+
+.mainSelectContainer {
+  display: flex;
+  margin: 0px auto;
+  align-items: center;
+  justify-content: space-between;
+  @include containers.set-width(280px);
+}
+
+.select {
+  max-height: 40px;
+  min-width: 60%;
+}
+
+.formComponent {
+  margin: 20px auto;
+  @include containers.set-width(280px);
+}
+
+.resultsContainer {
+  display: block;
+  overflow: hidden;
+  @media #{mediaQuerySizes.$mobile} {
+    width: 100%;
+  }
+  @media #{mediaQuerySizes.$desktop-tablet} {
+    min-height: 100vh;
+  }
+  width: 75%;
+}

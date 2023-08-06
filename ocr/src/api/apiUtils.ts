@@ -1,18 +1,5 @@
-/**
- *  @packageDocumentation
- *  @module API/APIUtils
- * 	Has some useful functions for the API.
- */
-
 import { Request, Response, NextFunction } from 'express';
-import { isUndefined, cloneDeep, noop } from 'lodash';
-import { ReadStream } from 'fs';
-
-import CONSTS from '~/constants';
-import CodedError from '~/errors';
-import ERROR_CODES from '~/errors/codes';
-import i18n from '~/internationalization';
-import logger from '~/utils/logger';
+import { noop } from 'lodash';
 
 type APIResponse = {
   success: boolean;
@@ -22,58 +9,11 @@ type APIResponse = {
   reload?: boolean;
 };
 
-type ExtendedRequest = Request & {
-  __SAVE: Record<string, unknown>;
-};
-
-/**
- * 	Has some useful function for the API.
- */
 class APIUtils {
-  /**
-   *  Constructs API Utils.
-   */
   constructor() {
     this.handleError = this.handleError.bind(this);
   }
 
-  /**
-   * 	Saves the value in the request, so you can recover it in other place.
-   *  @param req Request object from express.
-   *  @param variables Variables to be saved to the Request object.
-   */
-  saveInReq(req: ExtendedRequest, variables: Record<string, unknown>): boolean {
-    if (isUndefined(req.__SAVE)) {
-      req.__SAVE = {};
-    }
-    const save = cloneDeep(variables);
-    req.__SAVE = { ...req.__SAVE, ...save };
-    return true;
-  }
-
-  /**
-   * 	Load the values from the request, if you saved them before.
-   *  @param req Request object from express.
-   *  @param variables Variables to get from Request object.
-   */
-  loadFromReq(req: ExtendedRequest, variables: string[]): Record<string, unknown> {
-    if (isUndefined(req.__SAVE)) {
-      req.__SAVE = {};
-    }
-    const result: Record<string, unknown> = {};
-    variables.forEach((variable) => {
-      result[variable] = req.__SAVE[variable];
-      return true;
-    });
-    return result;
-  }
-
-  /**
-   *  Sends the response with code 200.
-   *  @param res Response object from express.
-   *  @param payload Whatever you wanna send to the user.
-   *  @param code Status code the user will receive.
-   */
   sendResponse(res: Response, payload: unknown, code = 200): boolean {
     const send: APIResponse = {
       payload,
@@ -84,161 +24,28 @@ class APIUtils {
     return true;
   }
 
-  /**
-   * 	Sends the error with the specified code.
-   *  @param req Request object from Express.
-   *  @param res Response object from Express.
-   *  @param error Error to be sent to the user.
-   *  @param code HTTP status code for the response.
-   *  @param askReload If it should send "reload:true" or false to the user.
-   */
-  sendError(req: Request, res: Response, error: CodedError, code = 500): boolean {
+  sendError(req: Request, res: Response, error: Error, code = 500): boolean {
+    noop(req);
     const response: APIResponse = {
       success: false,
-      error: i18n.getErrorDescription(req, error),
-      errorCode: error.code,
+      error: error.message,
+      errorCode: error.name,
     };
     res.statusCode = code;
     res.json(response);
     return false;
   }
 
-  /**
-   * 	Send a content as a file.
-   *  If it's a "pdf" it send it as one.
-   *  @param res Response object from Express.
-   *  @param file File to be send to the user.
-   *  @param fileName Name of the file the user will see.
-   */
-  sendAsFile(res: Response, file: ReadStream | string | Buffer, fileName: string): boolean {
-    let finalFile = file;
-    let contentType = 'application/octet-stream';
-    let disposition = 'attachment';
-
-    if (typeof file === 'string') {
-      finalFile = Buffer.from(file, 'binary');
-    }
-
-    if (fileName.toLowerCase().endsWith('.pdf')) {
-      contentType = 'application/pdf';
-      disposition = 'inline';
-    }
-
-    if (Buffer.isBuffer(finalFile)) {
-      res.writeHead(200, {
-        'Content-Type': contentType,
-        'Content-disposition': `${disposition};filename=${fileName}`,
-        'Content-Length': finalFile.length,
-      });
-      res.end(finalFile);
-      return true;
-    }
-
-    if (finalFile instanceof ReadStream) {
-      res.writeHead(200, {
-        'Content-Type': contentType,
-        'Content-Disposition': `${disposition}; filename=${fileName}`,
-      });
-      finalFile.pipe(res);
-      return true;
-    }
-
-    res.setHeader('Content-Disposition', `${disposition}; filename=${fileName}`);
-    res.setHeader('Content-Type', contentType);
-    res.send(finalFile);
-    return true;
-  }
-
-  /**
-   *  Send that the specified method was not found.
-   *  @param req Request that sent the incorrect method.
-   *  @param res Response that will send error to the client.
-   *  @param next Next function to be executed in express.
-   */
   sendMethodNotFound(req: Request, res: Response, next: NextFunction): boolean {
-    noop([res, req]);
-    const error = new CodedError('API_METHOD_NOT_FOUND');
+    noop([res]);
+    const error = new Error(`No se encontró el método ${req.originalUrl}`);
     next(error);
     return true;
   }
 
-  /**
-   *  Handles the error ocurred in the API.
-   *  @param err Errorto be thrown.
-   *  @param req Request that received the error.
-   *  @param res Response that will send error to the client.
-   *  @param next Next function to be executed in express.
-   */
-  handleError(err: CodedError, req: Request, res: Response, next: NextFunction): boolean {
+  handleError(error: Error, req: Request, res: Response, next: NextFunction): void {
     noop(next);
-    let error = err;
-
-    switch (err.code) {
-      case 'credentials_required':
-      case 'invalid_token':
-      case 'credentials_bad_format':
-        error = new CodedError('NOT_AUTHORIZED');
-        break;
-
-      default:
-        error = err;
-    }
-    if (isUndefined(error.trace)) {
-      error = new CodedError('NOT_DEFINED', [], { originalError: err });
-    }
-
-    const errorCode = this._chooseResponseCodeByError(error);
-    this.sendError(req, res, error, errorCode);
-
-    delete req.headers['X-API-KEY'];
-    delete req.headers.Authorization;
-    delete req.headers['x-api-key'];
-    delete req.headers.authorization;
-
-    const context = {
-      error,
-      method: req.method,
-      url: req.originalUrl,
-      params: req.params,
-      query: req.query,
-      headers: req.headers,
-    };
-    return logger.error(err.code, CONSTS.LOGS.LABELS.ERROR.API_REQUEST, context);
-  }
-
-  /**
-   *
-   *  PRIVATE.
-   *
-   */
-
-  /**
-   *  Choose the response code by the error code.
-   *  @param error Error received.
-   */
-  private _chooseResponseCodeByError(error: CodedError): number {
-    let errorCode: number;
-    switch (error.code) {
-      case ERROR_CODES.INVALID_PARAMS:
-      case ERROR_CODES.API_INVALID_PARAMS:
-        errorCode = 400;
-        break;
-      case ERROR_CODES.NOT_AUTHORIZED:
-        errorCode = 401;
-        break;
-      case ERROR_CODES.API_METHOD_NOT_FOUND:
-        errorCode = 404;
-        break;
-      case ERROR_CODES.API_REQUESTS_TOO_OFTEN:
-        errorCode = 429;
-        break;
-      case ERROR_CODES.NOT_DEFINED:
-        errorCode = 500;
-        break;
-      default:
-        errorCode = 403;
-    }
-    return errorCode;
+    this.sendError(req, res, error, 503);
   }
 }
 

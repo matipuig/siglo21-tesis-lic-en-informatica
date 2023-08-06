@@ -1,0 +1,18 @@
+// MEDIA QUERIES
+// Contains sizes to be used across all SASS files.
+
+$small-mobile: 'only screen and (max-width: 361px)';
+$mobile: 'only screen and (max-width: 767px)';
+$tablet-mobile: 'only screen and (max-width: 1024px)';
+$tablet: 'only screen and (min-width: 768px) and (max-width: 1024px)';
+$desktop-tablet: 'only screen and (min-width: 768px)';
+$desktop: 'only screen and (min-width: 1025px)';
+$hd-plus: 'only screen and (min-width: 1450px)';
+$full-hd: 'only screen and (min-width: 1920px)';
+
+$extra-small: 'only screen and (max-width: 575px)';
+$small: 'only screen and (min-width: 576px) and (max-width: 767px)';
+$medium: 'only screen and (min-width: 768px) and (max-width: 991px)';
+$large: 'only screen and (min-width: 992px) and (max-width: 1199px)';
+$x-large: 'only screen and (min-width: 1200px) and (max-width: 1399px)';
+$xx-large: 'only screen and (min-width: 1400px)';

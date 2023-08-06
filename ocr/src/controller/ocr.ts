@@ -1,138 +1,68 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/**
- * @packageDocumentation
- * @module Controller/OCR
- * Executes the OCR.
- */
-import fs from 'fs';
-import fileType from 'file-type';
-import tesseract from 'node-tesseract-ocr';
+import axios from 'axios';
+import crypto from 'crypto';
 
-import CodedError, { CODES } from '~/errors';
+import CONFIG from '~/config';
+import OCRProccess from './OCRProccess';
 import files from './files';
+import tesseract from './tesseract';
 
-type OCRResultType = {
-  // eslint-disable-next-line camelcase
-  text_pages: string[];
-};
+import { DBOCRProcessType, OCRProcessType } from '~/types/OCRProcess';
 
-type OCRPageCompletedType = {
-  index: number;
-  // eslint-disable-next-line camelcase
-  num_pages: number;
-};
-
-const PDFExtractor = require('pdf-extract');
-
-/**
- * Executes the OCR
- */
 class OCR {
-  /**
-   * Execute the OCR and returns the string.
-   * @param filePath Path to the file.
-   * @param fileHash File hash.
-   */
-  async execute(filePath: string, fileHash: string): Promise<string> {
-    if (!fs.existsSync(filePath)) {
-      throw new Error("File doesn't exists!");
+  private _processTimeout: NodeJS.Timeout | undefined;
+
+  startExtractions() {
+    if (this._processTimeout) {
+      clearTimeout(this._processTimeout);
     }
+    this._processTimeout = setTimeout(() => this._processNextFile(), 2000);
+  }
 
-    // TODO: DO MAIN VALIDATIONS (pages of the PDF, size, etc...)
-
+  async extract(base64: string, metadata: string): Promise<OCRProcessType> {
     try {
-      const extType = await fileType.fromFile(filePath);
-      const mimeType = extType?.ext || '';
-
-      switch (mimeType) {
-        case 'pdf':
-          return this._fromPDF(filePath, fileHash);
-
-        case 'apng':
-        case 'bmp':
-        case 'gif':
-        case 'icns':
-        case 'ico':
-        case 'jpg':
-        case 'jpx':
-        case 'png':
-        case 'tif':
-        case 'ttf':
-        case 'webp':
-          return this._fromImage(filePath);
-
-        default:
-          throw new CodedError('OCR_MIME_TYPE_ERROR', [], { mimeType });
-      }
+      await files.add(base64);
+      const hash = crypto.createHash('sha256').update(base64).digest('hex');
+      return OCRProccess.add(hash, metadata);
     } catch (error) {
       throw error;
     }
   }
 
-  /**
-   *
-   * PRIVATE METHODS
-   *
-   */
+  async getByHash(hash: string): Promise<OCRProcessType | false> {
+    return OCRProccess.getState(hash);
+  }
 
-  /**
-   * Executes the OCR and returns the string.
-   * @param filePath Path to the file.
-   */
-  private async _fromImage(filePath: string): Promise<string> {
+  private async _processNextFile(): Promise<void> {
     try {
-      const config = {
-        lang: 'eng+spa',
-        oem: 1,
-        psm: 3,
-      };
-      const image = fs.readFileSync(filePath);
-      const result = await tesseract.recognize(image, config);
-      return result;
+      if (this._processTimeout) {
+        clearTimeout(this._processTimeout);
+      }
+      const nextFile = await OCRProccess.getFirstNotStartedFile();
+      if (!nextFile) {
+        this.startExtractions();
+        return;
+      }
+      const { hash } = nextFile;
+      const filePath = files.getFilePathByHash(hash);
+      await this._extract(hash, filePath);
     } catch (error) {
-      throw new CodedError(CODES.OCR_IMAGE_ERROR, [], { error });
+      console.error(error);
     }
+    this.startExtractions();
   }
 
-  /**
-   * Executes the OCR and returns the string.
-   * @param filePath Path to the file.
-   * @param fileHash Hash of the file.
-   */
-  private async _fromPDF(filePath: string, fileHash: string): Promise<string> {
-    const options = {
-      type: 'ocr',
-      clean: true,
-      ocr_flags: ['--psm 1', '-l spa+eng', 'alphanumeric'],
-    };
-
-    return new Promise((resolve, reject) => {
-      const pdfProcessor = PDFExtractor(filePath, options, (error: Error) => {
-        if (error) {
-          reject(new CodedError('OCR_PDF_ERROR', [], { error }));
-        }
-      });
-
-      pdfProcessor.on('complete', (data: OCRResultType) => resolve(this._parsePDFResult(data)));
-
-      pdfProcessor.on('page', (data: OCRPageCompletedType) => {
-        const percentage = (data.index / data.num_pages) * 100;
-        return files.setPercentageCompleted(fileHash, percentage);
-      });
-
-      pdfProcessor.on('error', (error: Error) => {
-        reject(new CodedError('OCR_PDF_ERROR', [], { error }));
-      });
-    });
-  }
-
-  /**
-   * Parses the OCR result type and returns its text.
-   * @param result Result from the OCR.
-   */
-  private _parsePDFResult(result: OCRResultType): string {
-    const text = result.text_pages.join(' ');
-    return text.replace(/\s+/gm, ' ');
+  private async _extract(hash: string, filePath: string): Promise<void> {
+    try {
+      console.log(`Extrayendo contenido de archivo ${hash}`);
+      await OCRProccess.setStarted(hash);
+      const textResult = await tesseract.execute(filePath);
+      await OCRProccess.setFinished(hash, textResult);
+      const { metadata, text } = (await OCRProccess.getState(hash)) as DBOCRProcessType;
+      await axios.post(CONFIG.SERVICES.LOADER_URL, { metadata, textContent: text });
+    } catch (error) {
+      await OCRProccess.setErrored(hash, (error as Error).message);
+      throw error;
+    }
   }
 }
 

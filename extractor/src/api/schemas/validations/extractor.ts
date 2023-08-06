@@ -1,9 +1,3 @@
-/**
- *  @packageDocumentation
- *  @hidden
- *  Contain all the possible validation for schemas.
- */
-
 const validationList = {
   EXTRACTOR: {
     type: 'object',
