@@ -1,7 +1,7 @@
 # NOTE: You might change the node version.
 
 # NOT USING ALPINE BECAUSE OF PROBLEMS INSTALLING PDFTK.
-FROM node:14.12  
+FROM node:16.12  
 
 # Install OCR packages.
 RUN apt-get update \ 

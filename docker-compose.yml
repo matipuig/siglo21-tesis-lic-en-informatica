@@ -44,6 +44,8 @@ services:
       SQL_PASSWORD: 12345
       SQL_DATABASE: application
       LOADER_URL: http://loader:8080/text
+    ports:
+      - 8002:8080
     volumes:
       - ocr_persisted:/home/node/app/persisted
 
@@ -58,6 +60,8 @@ services:
       SQL_USERNAME: matias
       SQL_PASSWORD: 12345
       SQL_DATABASE: application
+    ports:
+      - 8003:8080
     volumes:
       - searcher_persisted:/home/node/app/persisted
 
@@ -74,6 +78,8 @@ services:
       SQL_DATABASE: application
       SERVICE_EXTRACTOR_URL: http://extractor:8080
       SERVICE_OCR_URL: http://ocr:8080
+    ports:
+      - 8004:8080
     volumes:
       - loader_persisted:/home/node/app/persisted
 
@@ -86,6 +92,8 @@ services:
       FILES_DIR_PATH: /archivos
       SOURCE_NAME: resoluciones
       SERVICE_LOADER_URL: http://loader:8080
+    ports:
+      - 8006:8080
     volumes:
       - ./archivos:/archivos:rw
 

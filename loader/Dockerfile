@@ -3,7 +3,7 @@
 # Use: https://hub.docker.com/_/node and check for the recommended in: https://nodejs.org/en/
 # You should find an image according to your server and architecture. 
 # Also, big images come with more vulnerabilities. Try to use something like alpine. 
-FROM node:14.12-alpine
+FROM node:16.12-alpine
 
 # Here you should do stuff like "apk install", etc. that needs root privileges.
 
@@ -17,6 +17,7 @@ WORKDIR /home/node/app
 COPY --chown=node:node package*.json ./
 
 # Do NOT run as root user!
+USER node
 RUN npm install
 COPY --chown=node:node . .
 
