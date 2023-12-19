@@ -4,6 +4,7 @@ volumes:
   mysql_data:
   ocr_persisted:
   searcher_persisted:
+  classifier_persisted:
   loader_persisted:
 
 services:
@@ -49,6 +50,17 @@ services:
     volumes:
       - ocr_persisted:/home/node/app/persisted
 
+  classifier:
+    build:
+      context: ./classifier
+      dockerfile: Dockerfile
+    environment:
+      ALGORITHMS_DIR_PATH: /code/algorithms
+    ports:
+      - 8007:8080
+    volumes:
+      - ./algoritmos:/code/algorithms
+
   searcher:
     build:
       context: ./searcher
@@ -71,6 +83,10 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - mysql
+      # - extractor
+      # - ocr
+      # - classifier
+      # - searcher
     environment:
       SQL_HOST: mysql
       SQL_USERNAME: matias
@@ -87,6 +103,9 @@ services:
     build:
       context: ./integrador
       dockerfile: Dockerfile
+    depends_on:
+      - mysql
+      - loader
     environment:
       CHOKIDAR_USEPOLLING: "true"
       FILES_DIR_PATH: /archivos
@@ -97,20 +116,20 @@ services:
     volumes:
       - ./archivos:/archivos:rw
 
-  gateway:
-    build:
-      context: ./gateway
-      dockerfile: Dockerfile
-    depends_on:
-      - mysql
-    environment:
-      SESSION_SECRET: 12345
-      SQL_HOST: mysql
-      SQL_USERNAME: matias
-      SQL_PASSWORD: 12345
-      SQL_DATABASE: application
-    ports:
-      - 8005:8080
+  # gateway:
+  #   build:
+  #     context: ./gateway
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - mysql
+  #   environment:
+  #     SESSION_SECRET: 12345
+  #     SQL_HOST: mysql
+  #     SQL_USERNAME: matias
+  #     SQL_PASSWORD: 12345
+  #     SQL_DATABASE: application
+  #   ports:
+  #     - 8005:8080
 
   frontend:
     build:

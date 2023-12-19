@@ -33,7 +33,6 @@ class Classifiers:
             "date": datetime.datetime.now() 
         }
 
-
     #
     # PRIVATE METHODS.
     #
@@ -45,16 +44,14 @@ class Classifiers:
             return self._classify_as_text_binary_classification(algorithm, text)            
         raise Exception(f'Algorithm type "{algorithm_type}" is not recognized.')
 
-
     def _classify_as_text_binary_classification(self, algorithm: dict, text: str) -> dict:
         result = {}
         categories = algorithm["classifiers"].keys()
         for category in categories:
             classifier = algorithm["classifiers"][category]
             prediction = classifier.predict([text])[0]
-            result[category] = prediction  == 1
+            result[category] = prediction == 1
         return result
-
 
     def preprocess_text(self, text: str) -> str:
         text = text.lower()
@@ -72,7 +69,6 @@ class Classifiers:
         text = u"".join([c for c in text_nfkd_form if not unicodedata.combining(c)])
 
         # Remove stopwords
-        # TO DO: ADD THIS.
         text_words = text.split(' ')
 #        stop_words = nltk.corpus.stopwords.words('spanish')
 #        text_words = [i for i in text_words if i not in stop_words]

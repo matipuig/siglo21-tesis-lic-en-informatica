@@ -43,8 +43,7 @@ USER root
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/tessdata
 COPY ./tesseract /usr/share/tesseract-ocr/
 
-VOLUME /home/node/app/persisted
-
 # It's very important to run it with node and not pm2 or another process manager.
 # This way, you give the restart decision to docker-compose.
+USER node
 CMD ["npm", "run", "start-from-docker", "--silent"]

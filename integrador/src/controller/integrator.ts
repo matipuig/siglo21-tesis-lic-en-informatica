@@ -7,11 +7,6 @@ import path from 'path';
 import CONFIG from '~/config';
 import loaderService from '~/services/loader';
 
-type MetadataType = {
-  subject: string;
-  year: number;
-};
-
 const { FILES_DIR_PATH, SOURCE_NAME } = CONFIG;
 
 if (!fs.existsSync(FILES_DIR_PATH)) {
@@ -49,10 +44,12 @@ class Integrator {
       console.log(`Verificando ${filePath}`);
       const metadata = this._getMetadata(filePath);
       if (isNull(metadata)) {
+        console.log(`${filePath} rechazado por no tener metadata`);
         return false;
       }
       const shouldUpdate = await this._shouldUpdateFile(filePath);
       if (!shouldUpdate) {
+        console.log(`${filePath} no requiere actualización.`);
         return false;
       }
       const sourceDocumentIdentifier = this._getSourceDocumentIdentifier(filePath);
@@ -69,8 +66,10 @@ class Integrator {
         },
       };
       await loaderService.set(document);
+      console.log(`${document.file.fileName} agregado.`);
       return true;
     } catch (error) {
+      console.error(`${filePath} con error.`);
       console.error(error);
       return false;
     }
@@ -81,8 +80,10 @@ class Integrator {
       console.log(`Eliminando ${filePath}`);
       const sourceDocumentIdentifier = this._getSourceDocumentIdentifier(filePath);
       await loaderService.delete(sourceDocumentIdentifier);
+      console.log(`${filePath} eliminado.`);
       return true;
     } catch (error) {
+      console.log(`${filePath} con error.`);
       console.error(error);
       return false;
     }
@@ -107,16 +108,8 @@ class Integrator {
     }
   }
 
-  private _getMetadata(filePath: string): MetadataType | null {
-    const noBaseFilePath = filePath.replace(FILES_DIR_PATH, '');
-    const arrFilePath = noBaseFilePath.split(path.sep);
-    if (arrFilePath.length < 4) {
-      return null;
-    }
-    return {
-      subject: arrFilePath[1],
-      year: Number.parseInt(arrFilePath[2], 10),
-    };
+  private _getMetadata(filePath: string): Record<string, string> | null {
+    return { filePath };
   }
 
   private _getContentHash(base64: string): string {

@@ -1,5 +1,5 @@
 # DOCKERFILE
-FROM node:14.12-alpine
+FROM node:16.12-alpine
 
 
 # Install node packages.

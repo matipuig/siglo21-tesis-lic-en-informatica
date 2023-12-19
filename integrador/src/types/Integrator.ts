@@ -8,13 +8,8 @@ export type NewDocumentType = {
   source: string;
   sourceDocumentIdentifier: string;
   contentHash: string;
-  metadata:
-    | {
-        subject: string;
-        year: number;
-      }
-    | string;
-  file: {
+  metadata: Record<string, string> | string,
+    file: {
     fileName: string;
     base64: string;
   };
