@@ -52,6 +52,7 @@ class Algorithms:
                 "file_path": file_path
             }
             self.algorithms.append(algorithm_info)
+        print(f'Loaded {len(self.algorithms)} algorithms: {",".join(algorithm["name"] for algorithm in self.algorithms)}')
 
     def _get_algorithms_file_paths_from_folder(self):
         algorithms_dir_path = self.algorithms_dir_path

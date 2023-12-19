@@ -57,7 +57,7 @@ services:
     environment:
       ALGORITHMS_DIR_PATH: /code/algorithms
     ports:
-      - 8007:8080
+      - 8007:8000
     volumes:
       - ./algoritmos:/code/algorithms
 
